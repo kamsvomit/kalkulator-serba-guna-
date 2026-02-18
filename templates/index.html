@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🛠️ ToolBox</title>
+  <style>
+    /* ── RESET & VARIABLES ─────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg       : #0d0d12;
+      --surface  : #16161f;
+      --surface2 : #1e1e2a;
+      --surface3 : #252535;
+      --border   : #2a2a3d;
+      --accent   : #7c6fff;
+      --accent-h : #6357e8;
+      --accent2  : #a78bfa;
+      --text     : #e2e2f0;
+      --text-dim : #9090b8;
+      --danger   : #f87171;
+      --success  : #4ade80;
+      --radius   : 12px;
+      --radius-sm: 8px;
+      --trans    : .18s ease;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family   : 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background    : var(--bg);
+      color         : var(--text);
+      min-height    : 100vh;
+      display       : flex;
+      flex-direction: column;
+    }
+
+    /* ── HEADER ────────────────────────────────────────────── */
+    header {
+      background   : var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding      : 1rem 2rem;
+      position     : sticky;
+      top          : 0;
+      z-index      : 100;
+    }
+    .header-inner {
+      max-width  : 720px;
+      margin     : 0 auto;
+      display    : flex;
+      align-items: center;
+      gap        : 1rem;
+    }
+    .logo {
+      font-size  : 1.3rem;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+    .logo span { color: var(--accent2); }
+    .tagline {
+      color    : var(--text-dim);
+      font-size: .82rem;
+    }
+
+    /* ── MAIN ──────────────────────────────────────────────── */
+    main {
+      flex     : 1;
+      padding  : 2rem 1.5rem;
+      max-width: 720px;
+      width    : 100%;
+      margin   : 0 auto;
+    }
+
+    /* ── SELECTOR ──────────────────────────────────────────── */
+    .selector-wrap { margin-bottom: 1.8rem; }
+
+    .selector-label {
+      display       : block;
+      font-size     : .75rem;
+      font-weight   : 700;
+      color         : var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      margin-bottom : .5rem;
+    }
+
+    .select-row {
+      display: flex;
+      gap    : .6rem;
+    }
+
+    .select-box {
+      position: relative;
+      flex    : 1;
+    }
+    .select-box select {
+      width        : 100%;
+      padding      : .85rem 2.8rem .85rem 1rem;
+      background   : var(--surface);
+      color        : var(--text);
+      border       : 1.5px solid var(--border);
+      border-radius: var(--radius);
+      font-size    : .95rem;
+      appearance   : none;
+      cursor       : pointer;
+      outline      : none;
+      transition   : border-color var(--trans), box-shadow var(--trans);
+    }
+    .select-box select:hover,
+    .select-box select:focus {
+      border-color: var(--accent);
+      box-shadow  : 0 0 0 3px rgba(124,111,255,.18);
+    }
+    .select-arrow {
+      position      : absolute;
+      right         : .9rem;
+      top           : 50%;
+      transform     : translateY(-50%);
+      pointer-events: none;
+      color         : var(--text-dim);
+      font-size     : .85rem;
+    }
+
+    /* ── COPY BUTTON ───────────────────────────────────────── */
+    .btn-copy {
+      display    : flex;
+      align-items: center;
+      gap        : .4rem;
+      padding    : .85rem 1.1rem;
+      background : var(--surface);
+      color      : var(--text-dim);
+      border     : 1.5px solid var(--border);
+      border-radius: var(--radius);
+      font-size  : .85rem;
+      font-weight: 600;
+      cursor     : pointer;
+      white-space: nowrap;
+      transition : all var(--trans);
+      flex-shrink: 0;
+    }
+    .btn-copy:hover {
+      border-color: var(--accent);
+      color       : var(--accent2);
+    }
+    .btn-copy.copied {
+      border-color: var(--success);
+      color       : var(--success);
+    }
+    .btn-copy svg { flex-shrink: 0; }
+
+    /* ── TOOL PANEL ────────────────────────────────────────── */
+    #tool-panel {
+      background   : var(--surface);
+      border       : 1.5px solid var(--border);
+      border-radius: var(--radius);
+      min-height   : 340px;
+      overflow     : hidden;
+      transition   : border-color var(--trans);
+    }
+
+    /* Empty state */
+    .empty-state {
+      display        : flex;
+      flex-direction : column;
+      align-items    : center;
+      justify-content: center;
+      min-height     : 340px;
+      gap            : .8rem;
+      color          : var(--text-dim);
+      text-align     : center;
+      padding        : 2rem;
+    }
+    .empty-icon { font-size: 2.8rem; line-height: 1; }
+    .empty-state p { font-size: .9rem; }
+
+    /* Loading state */
+    .loading-state {
+      display        : flex;
+      align-items    : center;
+      justify-content: center;
+      min-height     : 340px;
+      gap            : .8rem;
+      color          : var(--text-dim);
+    }
+    .spinner {
+      width           : 24px;
+      height          : 24px;
+      border          : 2.5px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius   : 50%;
+      animation       : spin .65s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── SHARED TOOL STYLES ────────────────────────────────── */
+    .tool-container { padding: 1.8rem; }
+    .tool-header    { margin-bottom: 1.5rem; }
+    .tool-header h2 { font-size: 1.3rem; font-weight: 700; margin-bottom: .25rem; }
+    .tool-desc      { color: var(--text-dim); font-size: .875rem; }
+
+    .tool-error {
+      background   : rgba(248,113,113,.1);
+      border       : 1px solid rgba(248,113,113,.35);
+      color        : var(--danger);
+      border-radius: var(--radius-sm);
+      padding      : .65rem 1rem;
+      margin-top   : 1rem;
+      font-size    : .875rem;
+    }
+
+    /* ── CALCULATOR ────────────────────────────────────────── */
+    .calc-wrap { max-width: 320px; margin: 0 auto; }
+
+    .calc-display {
+      background   : var(--surface2);
+      border       : 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding      : .9rem 1.2rem;
+      text-align   : right;
+      margin-bottom: .9rem;
+    }
+    .calc-expression {
+      font-size : .8rem;
+      color     : var(--text-dim);
+      min-height: 1.1em;
+      margin-bottom: .2rem;
+    }
+    .calc-result {
+      font-size  : 2.4rem;
+      font-weight: 700;
+      color      : var(--text);
+      word-break : break-all;
+      line-height: 1;
+    }
+
+    .calc-grid {
+      display              : grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap                  : .5rem;
+    }
+
+    .btn-calc {
+      border       : 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size    : 1.05rem;
+      font-weight  : 600;
+      padding      : .95rem .4rem;
+      cursor       : pointer;
+      transition   : transform .08s, background var(--trans);
+      user-select  : none;
+      line-height  : 1;
+    }
+    .btn-calc:active { transform: scale(.91); }
+
+    .btn-num {
+      background: var(--surface2);
+      color     : var(--text);
+    }
+    .btn-num:hover { background: var(--surface3); }
+
+    .btn-zero {
+      grid-column : span 2;
+      text-align  : left;
+      padding-left: 1.2rem;
+    }
+
+    .btn-op {
+      background: rgba(124,111,255,.15);
+      color     : var(--accent2);
+      border    : 1px solid rgba(124,111,255,.25);
+    }
+    .btn-op:hover  { background: rgba(124,111,255,.25); }
+    .btn-op.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+    .btn-equals {
+      background  : var(--accent);
+      color       : #fff;
+      border-color: var(--accent);
+    }
+    .btn-equals:hover { background: var(--accent-h); }
+
+    .btn-clear   { background: var(--surface2); color: var(--danger); }
+    .btn-sign,
+    .btn-percent { background: var(--surface2); color: var(--text-dim); font-size: .9rem; }
+    .btn-clear:hover,
+    .btn-sign:hover,
+    .btn-percent:hover { background: var(--surface3); }
+
+    /* ── FOOTER ────────────────────────────────────────────── */
+    footer {
+      text-align: center;
+      padding   : 1rem 1.5rem;
+      color     : var(--text-dim);
+      font-size : .78rem;
+      border-top: 1px solid var(--border);
+    }
+
+    /* ── RESPONSIVE ────────────────────────────────────────── */
+    @media (max-width: 480px) {
+      header   { padding: .9rem 1rem; }
+      main     { padding: 1.5rem 1rem; }
+      .tagline { display: none; }
+      .calc-result   { font-size: 2rem; }
+      .btn-calc      { padding: .85rem .3rem; font-size: .95rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ── HEADER ────────────────────────────────────────────── -->
+  <header>
+    <div class="header-inner">
+      <div class="logo">🛠️ <span>ToolBox</span></div>
+      <p class="tagline">{{ tools|length }} tools dalam satu halaman</p>
+    </div>
+  </header>
+
+  <!-- ── MAIN ──────────────────────────────────────────────── -->
+  <main>
+
+    <!-- Dropdown + Tombol Copy -->
+    <div class="selector-wrap">
+      <span class="selector-label">Pilih Tool</span>
+      <div class="select-row">
+
+        <div class="select-box">
+          <select id="tool-select">
+            <option value="">— Pilih tool yang mau dipakai —</option>
+            {% set ns = namespace(cat='') %}
+            {% for tool in tools %}
+              {% if tool.category != ns.cat %}
+                {% if ns.cat != '' %}</optgroup>{% endif %}
+                <optgroup label="{{ tool.category }}">
+                {% set ns.cat = tool.category %}
+              {% endif %}
+              <option value="{{ tool.id }}" title="{{ tool.description }}">{{ tool.name }}</option>
+            {% endfor %}
+            {% if tools %}</optgroup>{% endif %}
+          </select>
+          <span class="select-arrow">▾</span>
+        </div>
+
+        <button class="btn-copy" id="btn-copy" title="Copy nama tool">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+          </svg>
+          <span id="copy-label">Copy</span>
+        </button>
+
+      </div>
+    </div>
+
+    <!-- Tool Panel -->
+    <section id="tool-panel">
+      <div class="empty-state">
+        <div class="empty-icon">⬆️</div>
+        <p>Pilih tool dari dropdown di atas untuk mulai</p>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ── FOOTER ─────────────────────────────────────────────── -->
+  <footer>
+    ToolBox &copy; 2025 &nbsp;·&nbsp; {{ tools|length }} tools tersedia
+  </footer>
+
+  <!-- ── APP JS ─────────────────────────────────────────────── -->
+  <script>
+  (function () {
+    'use strict';
+
+    const sel      = document.getElementById('tool-select');
+    const panel    = document.getElementById('tool-panel');
+    const btnCopy  = document.getElementById('btn-copy');
+    const copyLbl  = document.getElementById('copy-label');
+
+    // ── Load tool via AJAX ──────────────────────────────────
+    async function loadTool(id) {
+      if (!id) {
+        panel.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon">⬆️</div>
+            <p>Pilih tool dari dropdown di atas untuk mulai</p>
+          </div>`;
+        return;
+      }
+
+      panel.innerHTML = `
+        <div class="loading-state">
+          <div class="spinner"></div>
+          <span>Memuat tool…</span>
+        </div>`;
+
+      try {
+        const res = await fetch('/tool/' + id);
+        if (!res.ok) throw new Error('Tool tidak ditemukan');
+        const html = await res.text();
+
+        panel.innerHTML = html;
+
+        // Re-run <script> yang ada di dalam HTML tool
+        panel.querySelectorAll('script').forEach(old => {
+          const s = document.createElement('script');
+          s.textContent = old.textContent;
+          document.body.appendChild(s);
+          old.remove();
+        });
+
+      } catch (err) {
+        panel.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon">⚠️</div>
+            <p style="color:var(--danger)">${err.message}</p>
+          </div>`;
+      }
+    }
+
+    // ── Dropdown change ─────────────────────────────────────
+    sel.addEventListener('change', () => {
+      loadTool(sel.value);
+      history.replaceState(null, '', sel.value ? '#' + sel.value : location.pathname);
+    });
+
+    // ── Tombol Copy ─────────────────────────────────────────
+    btnCopy.addEventListener('click', () => {
+      const opt = sel.options[sel.selectedIndex];
+      const txt = sel.value ? opt.text.trim() : location.href;
+
+      navigator.clipboard.writeText(txt).then(() => {
+        copyLbl.textContent = 'Copied!';
+        btnCopy.classList.add('copied');
+        setTimeout(() => {
+          copyLbl.textContent = 'Copy';
+          btnCopy.classList.remove('copied');
+        }, 1800);
+      });
+    });
+
+    // ── Auto-load dari URL hash ─────────────────────────────
+    const hash = location.hash.replace('#', '');
+    if (hash) {
+      const opt = sel.querySelector(`option[value="${hash}"]`);
+      if (opt) { sel.value = hash; loadTool(hash); }
+    }
+
+  })();
+  </script>
+
+</body>
+  </html>
+  
