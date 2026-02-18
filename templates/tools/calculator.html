@@ -1,0 +1,145 @@
+<!-- templates/tools/calculator.html -->
+<div class="tool-container" id="tool-calculator">
+
+  <div class="tool-header">
+    <h2>🧮 Kalkulator</h2>
+    <p class="tool-desc">Operasi matematika dasar: tambah, kurang, kali, bagi</p>
+  </div>
+
+  <div class="calc-wrap">
+
+    <!-- Display -->
+    <div class="calc-display">
+      <div class="calc-expression" id="calc-expr">&nbsp;</div>
+      <div class="calc-result"     id="calc-res">0</div>
+    </div>
+
+    <!-- Grid tombol -->
+    <div class="calc-grid">
+      <button class="btn-calc btn-clear"   >AC</button>
+      <button class="btn-calc btn-sign"    >+/-</button>
+      <button class="btn-calc btn-percent" >%</button>
+      <button class="btn-calc btn-op" data-op="/">÷</button>
+
+      <button class="btn-calc btn-num" data-n="7">7</button>
+      <button class="btn-calc btn-num" data-n="8">8</button>
+      <button class="btn-calc btn-num" data-n="9">9</button>
+      <button class="btn-calc btn-op" data-op="*">×</button>
+
+      <button class="btn-calc btn-num" data-n="4">4</button>
+      <button class="btn-calc btn-num" data-n="5">5</button>
+      <button class="btn-calc btn-num" data-n="6">6</button>
+      <button class="btn-calc btn-op" data-op="-">−</button>
+
+      <button class="btn-calc btn-num" data-n="1">1</button>
+      <button class="btn-calc btn-num" data-n="2">2</button>
+      <button class="btn-calc btn-num" data-n="3">3</button>
+      <button class="btn-calc btn-op" data-op="+">+</button>
+
+      <button class="btn-calc btn-num btn-zero" data-n="0">0</button>
+      <button class="btn-calc btn-num" data-n=".">.</button>
+      <button class="btn-calc btn-equals">=</button>
+    </div>
+
+    <div class="tool-error" id="calc-err" style="display:none"></div>
+  </div>
+</div>
+
+<script>
+(function () {
+  const root = document.getElementById('tool-calculator');
+  const elRes  = root.querySelector('#calc-res');
+  const elExpr = root.querySelector('#calc-expr');
+  const elErr  = root.querySelector('#calc-err');
+
+  let display  = '0';
+  let num1     = null;
+  let op       = null;
+  let waitNext = false;
+
+  const opSymbol = { '+': '+', '-': '−', '*': '×', '/': '÷' };
+
+  function setDisplay(v) { display = String(v); elRes.textContent = display; }
+
+  function showErr(msg) {
+    elErr.textContent  = msg;
+    elErr.style.display = 'block';
+    setTimeout(() => (elErr.style.display = 'none'), 2800);
+  }
+
+  function clearActiveOp() {
+    root.querySelectorAll('.btn-op').forEach(b => b.classList.remove('active'));
+  }
+
+  // Angka / titik
+  root.querySelectorAll('.btn-num').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const d = btn.dataset.n;
+      if (waitNext)                          { setDisplay(d); waitNext = false; return; }
+      if (d === '.' && display.includes('.')) return;
+      if (display === '0' && d !== '.')      { setDisplay(d); return; }
+      setDisplay(display + d);
+    });
+  });
+
+  // Operator
+  root.querySelectorAll('.btn-op').forEach(btn => {
+    btn.addEventListener('click', () => {
+      clearActiveOp();
+      btn.classList.add('active');
+      num1     = parseFloat(display);
+      op       = btn.dataset.op;
+      waitNext = true;
+      elExpr.textContent = `${num1} ${opSymbol[op]}`;
+    });
+  });
+
+  // Sama dengan
+  root.querySelector('.btn-equals').addEventListener('click', async () => {
+    if (num1 === null || op === null) return;
+    clearActiveOp();
+
+    const num2 = parseFloat(display);
+    elExpr.textContent = '';
+
+    try {
+      const res  = await fetch('/api/calculator', {
+        method : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body   : JSON.stringify({ num1, num2, operator: op }),
+      });
+      const json = await res.json();
+
+      if (json.success) {
+        setDisplay(json.result);
+        num1     = parseFloat(json.result);
+        op       = null;
+        waitNext = true;
+      } else {
+        showErr(json.error);
+      }
+    } catch {
+      showErr('Koneksi ke server gagal');
+    }
+  });
+
+  // AC
+  root.querySelector('.btn-clear').addEventListener('click', () => {
+    setDisplay('0');
+    num1 = null; op = null; waitNext = false;
+    elExpr.textContent = '';
+    clearActiveOp();
+  });
+
+  // +/-
+  root.querySelector('.btn-sign').addEventListener('click', () => {
+    setDisplay(parseFloat(display) * -1);
+  });
+
+  // %
+  root.querySelector('.btn-percent').addEventListener('click', () => {
+    setDisplay(parseFloat(display) / 100);
+  });
+})();
+  </script>
+  
